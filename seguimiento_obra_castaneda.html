@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obra Castañeda Peña — Seguimiento</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f6fa;color:#1a1d23;min-height:100vh}
+
+.hero{background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:32px 40px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:300px;height:300px;background:rgba(255,255,255,0.08);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-60px;left:200px;width:200px;height:200px;background:rgba(255,255,255,0.06);border-radius:50%}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;position:relative;z-index:1}
+.hero-title{color:#fff}
+.hero-title h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.hero-title p{font-size:14px;opacity:.85;margin-top:4px}
+.hero-value{text-align:right;color:#fff}
+.hero-value .lbl{font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:1px}
+.hero-value .val{font-size:24px;font-weight:800}
+.hero-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:28px;position:relative;z-index:1}
+.hero-stat{background:rgba(255,255,255,0.18);backdrop-filter:blur(4px);border-radius:14px;padding:14px 16px;color:#fff;border:1px solid rgba(255,255,255,0.25)}
+.hero-stat .s-val{font-size:20px;font-weight:800}
+.hero-stat .s-lbl{font-size:11px;opacity:.85;margin-top:2px}
+
+.progress-card{background:#fff;border-radius:20px;margin:-28px 32px 0;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.1);position:relative;z-index:10}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.progress-header span{font-size:14px;font-weight:600;color:#555}
+.progress-pct{font-size:28px;font-weight:800;color:#059669}
+.big-bar{background:#f0f0f0;border-radius:50px;height:16px;overflow:hidden}
+.big-bar-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,#059669,#10b981);transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
+.big-bar-fill::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.date-row{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#999}
+
+.main{padding:24px 32px;max-width:1200px;margin:0 auto}
+.section-label{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#bbb;margin-bottom:14px;margin-top:28px;font-weight:600}
+
+/* GANTT */
+.gantt-container{background:#fff;border-radius:20px;padding:24px;box-shadow:0 2px 16px rgba(0,0,0,0.06)}
+.gantt-legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f0f0f0}
+.gl-item{display:flex;align-items:center;gap:7px;font-size:12px;color:#666}
+.gl-dot{width:12px;height:12px;border-radius:3px}
+.gd-done{background:#22c55e}.gd-active{background:#059669}.gd-late{background:#ef4444}.gd-pending{background:#e5e7eb}
+
+.gantt-months{display:grid;grid-template-columns:220px repeat(8,1fr);gap:0;margin-bottom:6px}
+.gm-month{text-align:center;font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;padding:4px 2px;border-bottom:2px solid #f0f0f0}
+.gantt-weeks-header{display:grid;grid-template-columns:220px repeat(32,1fr);gap:0;margin-bottom:4px}
+.gwh-week{font-size:9px;color:#ddd;text-align:center;padding:2px 0;border-right:1px solid #f8f8f8}
+.gwh-week:nth-child(4n+2){border-left:1px solid #e8e8e8}
+
+.gantt-row{display:grid;grid-template-columns:220px repeat(32,1fr);gap:0;margin-bottom:3px;align-items:center;cursor:pointer;border-radius:10px;transition:background .15s}
+.gantt-row:hover{background:#f0fdf4}
+.gantt-row.expanded{background:#f0fdf4}
+.gr-label{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 4px}
+.gr-idx{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.gi-pending{background:#f0f0f0;color:#bbb}
+.gi-active{background:#d1fae5;color:#059669}
+.gi-done{background:#dcfce7;color:#16a34a}
+.gi-late{background:#fee2e2;color:#dc2626}
+.gr-text{font-size:12px;font-weight:600;color:#333;line-height:1.2;flex:1}
+.gr-expand-icon{font-size:10px;color:#ddd;transition:transform .2s;flex-shrink:0}
+.gantt-row.expanded .gr-expand-icon{transform:rotate(90deg);color:#059669}
+
+.gw-cell{height:32px;border-right:1px solid #f8f8f8;position:relative}
+.gw-cell:nth-child(4n+1){border-left:1px solid #ececec}
+.gw-bar{position:absolute;inset:5px 1px;border-radius:4px;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800}
+.bar-done{background:#bbf7d0;color:#15803d}
+.bar-active{background:linear-gradient(90deg,#6ee7b7,#34d399)}
+.bar-active-hi{background:linear-gradient(90deg,#059669,#10b981);color:#fff}
+.bar-late{background:#fecaca;color:#991b1b}
+.bar-pending{background:#f3f4f6}
+
+.gantt-detail{display:none;background:linear-gradient(90deg,#f0fdf4,#fff);border-left:3px solid #059669;border-radius:0 10px 10px 0;margin:0 0 8px 12px;padding:14px 16px;animation:slideDown .2s ease}
+.gantt-detail.show{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.gd-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.gd-title{font-size:13px;font-weight:700;color:#059669}
+.gd-dates{font-size:11px;color:#aaa;background:#f5f5f5;padding:3px 10px;border-radius:20px}
+.gd-includes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:10px}
+.gd-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#555;background:#fafafa;border-radius:8px;padding:8px 10px;border:1px solid #f0f0f0}
+.gd-item-check{color:#16a34a;font-size:12px;flex-shrink:0;margin-top:1px}
+.gd-excludes{font-size:11px;color:#888;margin-top:4px;padding:8px 10px;background:#fef2f2;border-radius:8px;border:1px solid #fecaca}
+.gd-excludes strong{color:#dc2626}
+.gd-note{font-size:11px;color:#64748b;font-style:italic;padding:8px 10px;background:#f0fdf4;border-radius:8px;margin-top:6px;border:1px solid #d1fae5}
+.gd-status-row{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #f0f0f0}
+.gd-mini-bar-wrap{flex:1;background:#f0f0f0;border-radius:50px;height:8px;overflow:hidden}
+.gd-mini-bar-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,#059669,#10b981)}
+.gd-pct-lbl{font-size:13px;font-weight:800;color:#059669;white-space:nowrap}
+.gd-status-chip{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.sc-done{background:#dcfce7;color:#15803d}
+.sc-active{background:#d1fae5;color:#065f46}
+.sc-late{background:#fee2e2;color:#dc2626}
+.sc-pending{background:#f5f5f5;color:#999}
+
+/* ACTAS */
+.actas-list{display:grid;gap:10px}
+.acta-item{background:#fff;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);border:1.5px solid #f0f0f0;transition:all .2s}
+.acta-item.paid{border-color:#22c55e;background:#f0fdf4}
+.acta-num{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+.acta-num.an-paid{background:linear-gradient(135deg,#16a34a,#4ade80)}
+.acta-body{flex:1;min-width:0}
+.acta-name{font-size:14px;font-weight:700;color:#1a1d23}
+.acta-hito{font-size:12px;color:#999;margin-top:1px}
+.acta-right{text-align:right}
+.acta-monto{font-size:16px;font-weight:800;color:#059669}
+.acta-fecha{font-size:11px;color:#bbb;margin-top:2px}
+.acta-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:6px}
+.ab-paid{background:#dcfce7;color:#15803d}
+.ab-pending{background:#f5f5f5;color:#999}
+
+.alert-box{border-radius:14px;padding:16px 20px;display:flex;align-items:flex-start;gap:12px}
+.alert-late{background:#fef2f2;border:1.5px solid #fca5a5}
+.alert-ok{background:#f0fdf4;border:1.5px solid #86efac}
+.alert-icon{font-size:22px;flex-shrink:0}
+.a-title{font-size:14px;font-weight:700;color:#991b1b}
+.alert-ok .a-title{color:#15803d}
+.a-items{font-size:13px;color:#b91c1c;margin-top:4px}
+.alert-ok .a-items{color:#16a34a}
+
+.read-only-badge{display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;float:right}
+
+.footer{text-align:center;padding:28px;color:#ccc;font-size:12px;border-top:1px solid #f0f0f0;margin-top:32px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <h1>🏗️ Obra Castañeda Peña</h1>
+      <p>Vivienda unifamiliar · Suesca, Cundinamarca · Dir. Alejandro Zambrano V.</p>
+    </div>
+    <div class="hero-value">
+      <div class="lbl">Valor contrato</div>
+      <div class="val">$758.645.550</div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="s-val" id="stat-ok">0</div><div class="s-lbl">Fases listas</div></div>
+    <div class="hero-stat"><div class="s-val">13</div><div class="s-lbl">Total fases</div></div>
+    <div class="hero-stat"><div class="s-val" id="stat-actas">0/6</div><div class="s-lbl">Actas cobradas</div></div>
+    <div class="hero-stat"><div class="s-val">8 meses</div><div class="s-lbl">Duración</div></div>
+    <div class="hero-stat"><div class="s-val" id="stat-estado">⏳ Sin iniciar</div><div class="s-lbl">Estado</div></div>
+  </div>
+</div>
+
+<div style="margin:0 32px;position:relative;z-index:10;margin-top:-28px">
+  <div class="progress-card">
+    <div class="progress-header">
+      <span>Avance general de obra</span>
+      <span class="read-only-badge">👁 Solo lectura</span>
+      <span class="progress-pct" id="main-pct">0%</span>
+    </div>
+    <div class="big-bar"><div class="big-bar-fill" id="main-bar" style="width:0%"></div></div>
+    <div class="date-row"><span>Inicio: 7 Sep 2026</span><span>Entrega: 7 May 2027</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="alert-box" style="margin-top:20px"></div>
+
+  <div class="section-label" style="margin-top:28px">Cronograma detallado — toca una actividad para ver el detalle</div>
+  <div class="gantt-container">
+    <div class="gantt-legend">
+      <div class="gl-item"><div class="gl-dot gd-done"></div>Completado</div>
+      <div class="gl-item"><div class="gl-dot gd-active"></div>En ejecución</div>
+      <div class="gl-item"><div class="gl-dot gd-late"></div>Atrasado</div>
+      <div class="gl-item"><div class="gl-dot gd-pending"></div>Pendiente</div>
+      <div style="margin-left:auto;font-size:11px;color:#ccc">▶ Haz clic en cada fila para ver el detalle</div>
+    </div>
+    <div class="gantt-months" style="min-width:700px">
+      <div></div>
+      <div class="gm-month" style="grid-column:span 4">Sep 2026</div>
+      <div class="gm-month" style="grid-column:span 4">Oct 2026</div>
+      <div class="gm-month" style="grid-column:span 4">Nov 2026</div>
+      <div class="gm-month" style="grid-column:span 4">Dic 2026</div>
+      <div class="gm-month" style="grid-column:span 4">Ene 2027</div>
+      <div class="gm-month" style="grid-column:span 4">Feb 2027</div>
+      <div class="gm-month" style="grid-column:span 4">Mar 2027</div>
+      <div class="gm-month" style="grid-column:span 4">Abr-May</div>
+    </div>
+    <div class="gantt-weeks-header" style="min-width:700px">
+      <div></div>
+      <script>for(let m=0;m<8;m++)for(let w=1;w<=4;w++)document.write('<div class="gwh-week">S'+w+'</div>')</script>
+    </div>
+    <div id="gantt-body" style="min-width:700px;overflow-x:auto"></div>
+  </div>
+
+  <div class="section-label">Actas de pago</div>
+  <div class="actas-list" id="actas-list"></div>
+</div>
+
+<div class="footer">
+  Castañeda Peña · AR2 Arquitectura & Construcción · Alejandro Zambrano V. · Suesca, Cundinamarca<br>
+  Actualizado por dirección de obra — <span id="last-upd">—</span>
+</div>
+
+<script>
+const PHASES=[
+  {id:0,name:"Preliminares y replanteo",weeks:[0,1],start:"7 Sep",end:"14 Sep",icon:"🔧",
+   includes:["Limpieza del lote","Descapote del terreno","Replanteo arquitectónico según planos AR2","Localización de ejes y niveles"],
+   note:"Ajuste de niveles conforme al predio entregado por el cliente.",excludes:null},
+  {id:1,name:"Excavaciones y cimentación",weeks:[1,2,3,4,5,6,7],start:"14 Sep",end:"12 Oct",icon:"⛏️",
+   includes:["Excavación manual y mecánica","Zapatas de cimentación en concreto","Vigas de amarre","Losa de contrapiso"],
+   note:"El nivel de cimentación puede ajustarse según el estudio de suelos.",
+   excludes:"No incluye movimientos de tierra adicionales por imprevistos geológicos."},
+  {id:2,name:"Estructura: columnas y vigas",weeks:[7,8,9,10,11,12,13,14],start:"12 Oct",end:"23 Nov",icon:"🏛️",
+   includes:["Columnas en concreto reforzado","Vigas principales y secundarias","Placas entrepiso","Desencofrado y curado","Inspección NSR-10"],
+   note:"Estructura calculada por ingeniero estructural.",excludes:null},
+  {id:3,name:"Steel Deck / Cubierta Colmetal",weeks:[8,9,10,11],start:"2 Nov",end:"30 Nov",icon:"🏠",
+   includes:["Estructura metálica de cubierta","Placa Steel Deck Colmetal","Impermeabilización de cubierta","Bajantes aguas lluvias"],
+   note:"Material Colmetal garantizado por fabricante.",
+   excludes:"No incluye cielo raso de cubierta ni acabados interiores de esta zona."},
+  {id:4,name:"Mampostería",weeks:[11,12,13,14,15,16],start:"23 Nov",end:"28 Dic",icon:"🧱",
+   includes:["Muros en bloque de arcilla","Dinteles en concreto","Tapia perimetral si aplica","Enchape exterior fachada básico"],
+   note:"Diseño de fachada según planos AR2 aprobados.",
+   excludes:"No incluye diseño de fachada adicional no acordado en planos."},
+  {id:5,name:"Instalaciones hidrosanitarias",weeks:[11,12,13,14,15,16,17,18,19],start:"30 Nov",end:"18 Ene",icon:"🚿",
+   includes:["Red de agua fría y caliente","Red de desagüe y ventilación","Puntos sanitarios rough-in","Cajas de inspección","Acometida medidor de agua"],
+   note:"Instalación hasta puntos. Aparatos sanitarios en fase posterior.",
+   excludes:"No incluye griferías ni aparatos sanitarios definitivos."},
+  {id:6,name:"Instalaciones eléctricas",weeks:[11,12,13,14,15,16,17,18,19],start:"30 Nov",end:"18 Ene",icon:"⚡",
+   includes:["Canaletas y ductos","Cableado eléctrico RETIE","Tablero de distribución","Puntos de iluminación rough-in","Red de datos y TV"],
+   note:"Diseño RETIE. Certificación final al entregarse los aparatos.",
+   excludes:"No incluye luminarias definitivas ni electrodomésticos."},
+  {id:7,name:"Enchapes",weeks:[15,16,17,18,19,20],start:"4 Ene",end:"8 Feb",icon:"🪨",
+   includes:["Enchape de pisos cerámica/porcelana","Enchape de baños y cocina","Guardaescobas","Nivelación y fragüe"],
+   note:"Material seleccionado por cliente en gama acordada. Cambios de referencia generan adicional.",
+   excludes:"Cambio de material fuera del presupuesto acordado se cobra como adicional."},
+  {id:8,name:"Cielo raso",weeks:[19,20,21,22,23],start:"1 Feb",end:"1 Mar",icon:"🪟",
+   includes:["Cielo raso en drywall o estuco según diseño","Cornisas si aplica","Entrepisos lisos","Vibrado y acabado superficial"],
+   note:null,
+   excludes:"No incluye diseños decorativos no contemplados en planos."},
+  {id:9,name:"Estuco y pintura",weeks:[22,23,24,25,26,27],start:"22 Feb",end:"5 Abr",icon:"🎨",
+   includes:["Estuco en muros y cielo","Vinilo tipo 1 y 2 interior","Pintura exterior elastomérico","Primera y segunda mano"],
+   note:"Color seleccionado por cliente con 10 días de anticipación a la fase.",
+   excludes:"Cambios de color o repintadas adicionales se cobran aparte."},
+  {id:10,name:"Carpintería metálica y madera",weeks:[23,24,25,26,27,28],start:"8 Mar",end:"19 Abr",icon:"🚪",
+   includes:["Puertas y ventanas en aluminio o metálica","Puerta principal","Escalera metálica si aplica","Closets básicos en madera"],
+   note:"Diseño según planos aprobados.",
+   excludes:"No incluye muebles de cocina altos, bajos, mesón definitivo ni herrajes de cocina."},
+  {id:11,name:"Aparatos sanitarios y luminarias",weeks:[27,28,29,30],start:"5 Abr",end:"26 Abr",icon:"💡",
+   includes:["Instalación de sanitarios e inodoros","Lavamanos y grifería estándar","Ducha y accesorios de baño","Luminarias de techo y pared"],
+   note:null,
+   excludes:"Grifería en gama estándar. Gamas superiores generan diferencial a cargo del cliente."},
+  {id:12,name:"Limpieza y entrega final",weeks:[30,31],start:"26 Abr",end:"7 May",icon:"🧹",
+   includes:["Limpieza profunda general","Retiro de escombros y materiales sobrantes","Entrega de manuales y garantías","Firma de acta de entrega notarial"],
+   note:"Firma de paz y salvo y acta de entrega al completar esta fase.",excludes:null},
+];
+
+const ACTAS=[
+  {id:0,name:"Acta 0 — Anticipo",hito:"Firma contrato + entrega formal del predio",pct:30,val:"$227.593.665",fecha:"7 Sep 2026"},
+  {id:1,name:"Acta 1",hito:"Cimentación 100% completa",pct:15,val:"$113.796.832",fecha:"26 Oct 2026"},
+  {id:2,name:"Acta 2",hito:"Estructura completa + cubierta Colmetal",pct:20,val:"$151.729.110",fecha:"15 Dic 2026"},
+  {id:3,name:"Acta 3",hito:"Mampostería + instalaciones rough-in",pct:15,val:"$113.796.832",fecha:"8 Feb 2027"},
+  {id:4,name:"Acta 4",hito:"Enchapes + cielo raso + estuco + carpintería",pct:12,val:"$91.037.466",fecha:"22 Mar 2027"},
+  {id:5,name:"Acta 5 — Entrega",hito:"Pintura + aparatos + luminarias + limpieza",pct:8,val:"$60.691.645",fecha:"7 May 2027"},
+];
+
+function load(){
+  try{const s=localStorage.getItem("obra_cp_v4");if(s)return JSON.parse(s);}catch(e){}
+  return{phases:PHASES.map(p=>({id:p.id,pct:0,status:"pendiente"})),actas:ACTAS.map(a=>({id:a.id,paid:false})),ts:null};
+}
+
+function toggleRow(id){
+  document.getElementById("grow-"+id).classList.toggle("expanded");
+  document.getElementById("gdetail-"+id).classList.toggle("show");
+}
+
+function getStyle(st){
+  if(st==="completado") return{bar:"bar-done",idx:"gi-done",chip:"sc-done",chipTxt:"✓ Completado"};
+  if(st==="en_progreso") return{bar:"bar-active",idx:"gi-active",chip:"sc-active",chipTxt:"🏗 En ejecución"};
+  if(st==="atrasado") return{bar:"bar-late",idx:"gi-late",chip:"sc-late",chipTxt:"⚠ Atrasado"};
+  return{bar:"bar-pending",idx:"gi-pending",chip:"sc-pending",chipTxt:"⬜ Pendiente"};
+}
+
+function render(){
+  const data=load();
+  const pMap={};data.phases.forEach(p=>pMap[p.id]=p);
+  const aMap={};data.actas.forEach(a=>aMap[a.id]=a);
+
+  const totalPct=Math.round(data.phases.reduce((s,p)=>s+(p.pct||0),0)/PHASES.length);
+  document.getElementById("main-pct").textContent=totalPct+"%";
+  document.getElementById("main-bar").style.width=totalPct+"%";
+
+  const done=data.phases.filter(p=>p.status==="completado").length;
+  const late=data.phases.filter(p=>p.status==="atrasado").length;
+  const active=data.phases.filter(p=>p.status==="en_progreso").length;
+  const paidCount=data.actas.filter(a=>a.paid).length;
+
+  document.getElementById("stat-ok").textContent=done;
+  document.getElementById("stat-actas").textContent=paidCount+"/6";
+  let estado="⏳ Sin iniciar";
+  if(done===13)estado="🎉 Entregada";
+  else if(late>0)estado="⚠️ Atrasado";
+  else if(active>0)estado="🏗️ En obra";
+  document.getElementById("stat-estado").textContent=estado;
+
+  const alertBox=document.getElementById("alert-box");
+  if(late>0){
+    alertBox.innerHTML=`<div class="alert-box alert-late"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="a-title">${late} fase(s) requiere(n) atención</div><div class="a-items">${data.phases.filter(p=>p.status==="atrasado").map(p=>"• "+PHASES[p.id].name).join("<br>")}</div></div></div>`;
+  } else if(active>0){
+    alertBox.innerHTML=`<div class="alert-box alert-ok"><div class="alert-icon">✅</div><div class="alert-body"><div class="a-title">Obra avanzando según lo programado</div><div class="a-items">${active} actividad(es) en ejecución actualmente</div></div></div>`;
+  } else alertBox.innerHTML="";
+
+  // GANTT
+  const gb=document.getElementById("gantt-body");gb.innerHTML="";
+  PHASES.forEach(p=>{
+    const pd=pMap[p.id]||{pct:0,status:"pendiente"};
+    const st=getStyle(pd.status);
+    const firstW=p.weeks[0],lastW=p.weeks[p.weeks.length-1];
+
+    const row=document.createElement("div");
+    row.className="gantt-row";row.id="grow-"+p.id;
+    row.setAttribute("onclick","toggleRow("+p.id+")");
+
+    const label=document.createElement("div");
+    label.className="gr-label";
+    label.innerHTML=`<div class="gr-idx ${st.idx}">${p.id+1}</div><div class="gr-text">${p.icon} ${p.name}</div><div class="gr-expand-icon">▶</div>`;
+    row.appendChild(label);
+
+    for(let w=0;w<32;w++){
+      const cell=document.createElement("div");
+      cell.className="gw-cell";
+      if(w>=firstW&&w<=lastW){
+        const bar=document.createElement("div");
+        bar.className="gw-bar "+st.bar;
+        if(w===firstW)bar.style.borderRadius="4px 0 0 4px";
+        if(w===lastW)bar.style.borderRadius=(w===firstW?"4px":"0 4px 4px 0");
+        if(w>firstW&&w<lastW)bar.style.borderRadius="0";
+        if(pd.status==="en_progreso"&&pd.pct>0){
+          const span=lastW-firstW+1,fillW=Math.round((pd.pct/100)*span);
+          if(w<firstW+fillW){bar.classList.add("bar-active-hi");}
+          else{bar.style.background="#d1fae5";}
+        }
+        const mid=Math.round((firstW+lastW)/2);
+        if(w===mid){
+          if(pd.status==="en_progreso")bar.textContent=pd.pct+"%";
+          if(pd.status==="completado")bar.textContent="✓";
+        }
+        cell.appendChild(bar);
+      }
+      row.appendChild(cell);
+    }
+    gb.appendChild(row);
+
+    const detail=document.createElement("div");
+    detail.className="gantt-detail";detail.id="gdetail-"+p.id;
+    const inclHtml=p.includes.map(i=>`<div class="gd-item"><span class="gd-item-check">✓</span><span>${i}</span></div>`).join("");
+    const exclHtml=p.excludes?`<div class="gd-excludes"><strong>⛔ No incluye:</strong> ${p.excludes}</div>`:"";
+    const noteHtml=p.note?`<div class="gd-note">💡 ${p.note}</div>`:"";
+    detail.innerHTML=`
+      <div class="gd-header">
+        <div class="gd-title">${p.icon} ${p.name}</div>
+        <div class="gd-dates">📅 ${p.start} → ${p.end}</div>
+      </div>
+      <div class="gd-includes">${inclHtml}</div>
+      ${exclHtml}${noteHtml}
+      <div class="gd-status-row">
+        <span class="gd-status-chip ${st.chip}">${st.chipTxt}</span>
+        <div class="gd-mini-bar-wrap"><div class="gd-mini-bar-fill" style="width:${pd.pct}%"></div></div>
+        <span class="gd-pct-lbl">${pd.pct}%</span>
+      </div>`;
+    gb.appendChild(detail);
+  });
+
+  // ACTAS
+  const al=document.getElementById("actas-list");al.innerHTML="";
+  ACTAS.forEach(a=>{
+    const ad=aMap[a.id]||{paid:false};
+    const item=document.createElement("div");
+    item.className="acta-item"+(ad.paid?" paid":"");
+    item.innerHTML=`
+      <div class="acta-num${ad.paid?" an-paid":""}">${a.id}</div>
+      <div class="acta-body">
+        <div class="acta-name">${a.name}</div>
+        <div class="acta-hito">${a.hito}</div>
+        <span class="acta-badge ${ad.paid?"ab-paid":"ab-pending"}">${ad.paid?"✅ Pagada":"⏳ Pendiente"}</span>
+      </div>
+      <div class="acta-right">
+        <div class="acta-monto">${a.val}</div>
+        <div class="acta-fecha">${a.pct}% · ${a.fecha}</div>
+      </div>`;
+    al.appendChild(item);
+  });
+
+  document.getElementById("last-upd").textContent=data.ts||"Pendiente primera actualización";
+}
+
+render();
+</script>
+</body>
+</html>
